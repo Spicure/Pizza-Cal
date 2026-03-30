@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { Pizza, Scale, Droplets, Utensils, Zap, Info, RefreshCw, Clock, Thermometer, Snowflake, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import WaterTemperatureCalculator from './components/WaterTemperatureCalculator';
 
 export default function App() {
   // Inputs
@@ -273,6 +274,8 @@ export default function App() {
             </div>
           </motion.section>
         </main>
+
+        <WaterTemperatureCalculator />
 
         <footer className="mt-12 text-center text-gray-400 text-xs py-8 border-t border-gray-200">
           <p>© 2026 Calculateur de Pâte à Pizza Professionnel</p>

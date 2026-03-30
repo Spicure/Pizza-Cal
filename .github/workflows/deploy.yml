@@ -1,0 +1,55 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Modifiez en 'master' si votre branche principale s'appelle master
+
+# Définit les permissions du GITHUB_TOKEN pour autoriser le déploiement sur GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Permet une seule exécution simultanée
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Travail de construction (Build)
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Installation des dépendances
+        run: npm ci
+        
+      - name: Construction du projet (Build)
+        run: npm run build
+        
+      - name: Upload de l'artefact (dossier dist)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  # Travail de déploiement (Deploy)
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Déploiement sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -96,16 +96,16 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
 
   const toggleUnit = () => {
     if (unit === 'C') {
-      setTargetTemp(cToF(targetTemp));
-      setRoomTemp(cToF(roomTemp));
-      setFlourTemp(cToF(flourTemp));
-      setCustomFriction(customFriction * 9/5); // Friction is a delta, not absolute temp
+      setTargetTemp(Number(cToF(targetTemp).toFixed(1)));
+      setRoomTemp(Number(cToF(roomTemp).toFixed(1)));
+      setFlourTemp(Number(cToF(flourTemp).toFixed(1)));
+      setCustomFriction(Number((customFriction * 9/5).toFixed(1))); // Friction is a delta, not absolute temp
       setUnit('F');
     } else {
-      setTargetTemp(fToC(targetTemp));
-      setRoomTemp(fToC(roomTemp));
-      setFlourTemp(fToC(flourTemp));
-      setCustomFriction(customFriction * 5/9);
+      setTargetTemp(Number(fToC(targetTemp).toFixed(1)));
+      setRoomTemp(Number(fToC(roomTemp).toFixed(1)));
+      setFlourTemp(Number(fToC(flourTemp).toFixed(1)));
+      setCustomFriction(Number((customFriction * 5/9).toFixed(1)));
       setUnit('C');
     }
   };
@@ -308,7 +308,7 @@ function TempInput({
       <div className="relative">
         <input
           type="number"
-          value={Number.isNaN(value) ? '' : Number(value.toFixed(1))}
+          value={Number.isNaN(value) ? '' : value}
           onChange={(e) => onChange(parseFloat(e.target.value))}
           step={0.5}
           className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none pr-10"

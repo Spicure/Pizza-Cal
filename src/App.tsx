@@ -6,7 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { Pizza, Scale, Droplets, Utensils, Zap, Info, RefreshCw, Clock, Thermometer, Snowflake, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import WaterTemperatureCalculator from './components/WaterTemperatureCalculator';
+import WaterTemperatureCalculator, { cToF, fToC } from './components/WaterTemperatureCalculator';
 import { t, Language } from './translations';
 
 export default function App() {
@@ -28,12 +28,29 @@ export default function App() {
   const [rtTemp, setRtTemp] = useState<number>(21);
   const [ctTime, setCtTime] = useState<number>(24);
   const [ctTemp, setCtTemp] = useState<number>(4);
+  const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
+
+  const toggleTempUnit = () => {
+    if (tempUnit === 'C') {
+      setRtTemp(Number(cToF(rtTemp).toFixed(1)));
+      setCtTemp(Number(cToF(ctTemp).toFixed(1)));
+      setTempUnit('F');
+    } else {
+      setRtTemp(Number(fToC(rtTemp).toFixed(1)));
+      setCtTemp(Number(fToC(ctTemp).toFixed(1)));
+      setTempUnit('C');
+    }
+  };
 
   // Calculations
   const calculatedYeast = useMemo(() => {
+    // Convertir en Celsius pour le calcul si on est en Fahrenheit
+    const calcRtTemp = tempUnit === 'C' ? rtTemp : fToC(rtTemp);
+    const calcCtTemp = tempUnit === 'C' ? ctTemp : fToC(ctTemp);
+
     // Modèle prédictif de base pour la levure fraîche de boulanger (LFB)
-    const mRT = Math.exp(0.08 * (rtTemp - 20)); // Multiplicateur temp ambiante
-    const mCT = Math.exp(0.08 * (ctTemp - 20)); // Multiplicateur temp frigo
+    const mRT = Math.exp(0.08 * (calcRtTemp - 20)); // Multiplicateur temp ambiante
+    const mCT = Math.exp(0.08 * (calcCtTemp - 20)); // Multiplicateur temp frigo
     const tEq = (rtTime * mRT) + (ctTime * mCT); // Temps équivalent à 20°C
     
     if (tEq <= 0) return 0;
@@ -50,7 +67,7 @@ export default function App() {
       case 'CY':
       default: return baseCY;
     }
-  }, [rtTime, rtTemp, ctTime, ctTemp, yeastType]);
+  }, [rtTime, rtTemp, ctTime, ctTemp, yeastType, tempUnit]);
 
   const effectiveYeast = autoYeast ? calculatedYeast : yeast;
 
@@ -85,9 +102,9 @@ export default function App() {
     setOil(0);
     setAutoYeast(true);
     setRtTime(4);
-    setRtTemp(21);
+    setRtTemp(tempUnit === 'C' ? 21 : cToF(21));
     setCtTime(24);
-    setCtTemp(4);
+    setCtTemp(tempUnit === 'C' ? 4 : cToF(4));
   };
 
   return (
@@ -205,10 +222,26 @@ export default function App() {
               </div>
 
               <div className="flex items-center justify-between mb-4">
-                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-[#FF6321]" />
-                  {txt.autoYeast}
-                </label>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Calculator className="w-4 h-4 text-[#FF6321]" />
+                    {txt.autoYeast}
+                  </label>
+                  <div className="flex bg-gray-100 p-0.5 rounded-lg">
+                    <button
+                      onClick={() => tempUnit !== 'C' && toggleTempUnit()}
+                      className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${tempUnit === 'C' ? 'bg-white text-[#FF6321] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      °C
+                    </button>
+                    <button
+                      onClick={() => tempUnit !== 'F' && toggleTempUnit()}
+                      className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${tempUnit === 'F' ? 'bg-white text-[#FF6321] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      °F
+                    </button>
+                  </div>
+                </div>
                 <button 
                   onClick={() => setAutoYeast(!autoYeast)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF6321] focus:ring-offset-2 ${autoYeast ? 'bg-[#FF6321]' : 'bg-gray-300'}`}
@@ -228,11 +261,11 @@ export default function App() {
                   >
                     <div className="grid grid-cols-2 gap-4">
                       <InputField label={txt.rtTime} value={rtTime} onChange={setRtTime} min={0} step={0.5} icon={<Clock className="w-4 h-4" />} />
-                      <InputField label={txt.rtTemp} value={rtTemp} onChange={setRtTemp} min={0} step={0.5} icon={<Thermometer className="w-4 h-4" />} />
+                      <InputField label={txt.rtTemp} value={rtTemp} onChange={(v) => setRtTemp(Number.isNaN(v) ? 0 : v)} step={0.5} unit={`°${tempUnit}`} icon={<Thermometer className="w-4 h-4" />} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <InputField label={txt.ctTime} value={ctTime} onChange={setCtTime} min={0} step={0.5} icon={<Snowflake className="w-4 h-4" />} />
-                      <InputField label={txt.ctTemp} value={ctTemp} onChange={setCtTemp} min={0} step={0.5} icon={<Thermometer className="w-4 h-4" />} />
+                      <InputField label={txt.ctTemp} value={ctTemp} onChange={(v) => setCtTemp(Number.isNaN(v) ? 0 : v)} step={0.5} unit={`°${tempUnit}`} icon={<Thermometer className="w-4 h-4" />} />
                     </div>
                     <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 flex justify-between items-center mt-2">
                       <span className="text-sm text-orange-800 font-medium">{txt.calcYeast}</span>

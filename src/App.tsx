@@ -21,6 +21,7 @@ export default function App() {
   const [oil, setOil] = useState<number>(0);
 
   // Yeast Inputs
+  const [yeastType, setYeastType] = useState<'CY' | 'IDY' | 'ADY' | 'SD'>('CY');
   const [autoYeast, setAutoYeast] = useState<boolean>(true);
   const [yeast, setYeast] = useState<number>(0.15); // Manual yeast
   const [rtTime, setRtTime] = useState<number>(4);
@@ -30,7 +31,7 @@ export default function App() {
 
   // Calculations
   const calculatedYeast = useMemo(() => {
-    // Modèle prédictif pour la levure fraîche de boulanger (LFB)
+    // Modèle prédictif de base pour la levure fraîche de boulanger (LFB)
     const mRT = Math.exp(0.08 * (rtTemp - 20)); // Multiplicateur temp ambiante
     const mCT = Math.exp(0.08 * (ctTemp - 20)); // Multiplicateur temp frigo
     const tEq = (rtTime * mRT) + (ctTime * mCT); // Temps équivalent à 20°C
@@ -39,8 +40,17 @@ export default function App() {
     
     // Formule empirique pour la levure fraîche
     const y = 4.5 / Math.pow(tEq, 1.1);
-    return Math.min(Math.max(y, 0.01), 10); // Limiter entre 0.01% et 10%
-  }, [rtTime, rtTemp, ctTime, ctTemp]);
+    const baseCY = Math.min(Math.max(y, 0.01), 10); // Limiter entre 0.01% et 10%
+    
+    // Conversion selon le type de levure
+    switch (yeastType) {
+      case 'IDY': return baseCY * 0.33; // Levure sèche instantanée (1/3)
+      case 'ADY': return baseCY * 0.40; // Levure sèche active (1/2.5)
+      case 'SD': return Math.min(baseCY * 15, 50); // Levain (approx 15x, max 50%)
+      case 'CY':
+      default: return baseCY;
+    }
+  }, [rtTime, rtTemp, ctTime, ctTemp, yeastType]);
 
   const effectiveYeast = autoYeast ? calculatedYeast : yeast;
 
@@ -70,6 +80,7 @@ export default function App() {
     setBallWeight(250);
     setHydration(62.5);
     setSalt(2.5);
+    setYeastType('CY');
     setYeast(0.15);
     setOil(0);
     setAutoYeast(true);
@@ -170,6 +181,29 @@ export default function App() {
 
               <div className="h-px bg-gray-100 my-6" />
               
+              <div className="space-y-2 mb-6">
+                <label className="text-sm font-semibold text-gray-700 block">
+                  {txt.yeastType}
+                </label>
+                <div className="relative">
+                  <select
+                    value={yeastType}
+                    onChange={(e) => setYeastType(e.target.value as any)}
+                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-[#FF6321]/20 focus:bg-white transition-all outline-none appearance-none cursor-pointer"
+                  >
+                    <option value="CY">{txt.yeastCY}</option>
+                    <option value="IDY">{txt.yeastIDY}</option>
+                    <option value="ADY">{txt.yeastADY}</option>
+                    <option value="SD">{txt.yeastSD}</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                   <Calculator className="w-4 h-4 text-[#FF6321]" />
@@ -245,7 +279,7 @@ export default function App() {
                   <ResultRow label={txt.flour} value={results.flourG} unit="g" />
                   <ResultRow label={txt.water} value={results.waterG} unit="g" />
                   <ResultRow label={txt.salt} value={results.saltG} unit="g" />
-                  <ResultRow label={txt.yeast} value={results.yeastG} unit="g" />
+                  <ResultRow label={`${txt.yeast} (${yeastType})`} value={results.yeastG} unit="g" />
                   {results.oilG > 0 && <ResultRow label={txt.oil} value={results.oilG} unit="g" />}
                 </div>
 

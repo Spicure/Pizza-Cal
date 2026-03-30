@@ -7,8 +7,12 @@ import React, { useState, useMemo } from 'react';
 import { Pizza, Scale, Droplets, Utensils, Zap, Info, RefreshCw, Clock, Thermometer, Snowflake, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import WaterTemperatureCalculator from './components/WaterTemperatureCalculator';
+import { t, Language } from './translations';
 
 export default function App() {
+  const [lang, setLang] = useState<Language>('fr');
+  const txt = t[lang];
+
   // Inputs
   const [numBalls, setNumBalls] = useState<number>(1);
   const [ballWeight, setBallWeight] = useState<number>(250);
@@ -85,17 +89,26 @@ export default function App() {
               <Pizza className="text-white w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Calculateur de Pâte</h1>
-              <p className="text-sm text-gray-500 italic">Pourcentage du boulanger</p>
+              <h1 className="text-2xl font-bold tracking-tight">{txt.appTitle}</h1>
+              <p className="text-sm text-gray-500 italic">{txt.appSubtitle}</p>
             </div>
           </div>
-          <button 
-            onClick={reset}
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors group"
-            title="Réinitialiser"
-          >
-            <RefreshCw className="w-5 h-5 text-gray-400 group-hover:rotate-180 transition-transform duration-500" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+              className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-50 hover:text-[#FF6321] transition-colors shadow-sm"
+              title={lang === 'fr' ? 'Switch to English' : 'Passer en français'}
+            >
+              {lang === 'fr' ? 'EN' : 'FR'}
+            </button>
+            <button 
+              onClick={reset}
+              className="p-2 hover:bg-gray-200 rounded-full transition-colors group"
+              title={txt.reset}
+            >
+              <RefreshCw className="w-5 h-5 text-gray-400 group-hover:rotate-180 transition-transform duration-500" />
+            </button>
+          </div>
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -107,12 +120,12 @@ export default function App() {
           >
             <div className="flex items-center gap-2 mb-6 pb-2 border-bottom border-gray-50">
               <Zap className="w-4 h-4 text-[#FF6321]" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Paramètres</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">{txt.parameters}</h2>
             </div>
 
             <div className="space-y-6">
               <InputField 
-                label="Nombre de pâtons" 
+                label={txt.numBalls} 
                 value={numBalls} 
                 onChange={setNumBalls} 
                 min={1} 
@@ -120,7 +133,7 @@ export default function App() {
                 icon={<Utensils className="w-4 h-4" />}
               />
               <InputField 
-                label="Poids du pâton (g)" 
+                label={txt.ballWeight} 
                 value={ballWeight} 
                 onChange={setBallWeight} 
                 min={1} 
@@ -129,7 +142,7 @@ export default function App() {
               />
               <div className="h-px bg-gray-100 my-4" />
               <InputField 
-                label="Hydratation (%)" 
+                label={txt.hydration} 
                 value={hydration} 
                 onChange={setHydration} 
                 min={0} 
@@ -139,7 +152,7 @@ export default function App() {
                 icon={<Droplets className="w-4 h-4" />}
               />
               <InputField 
-                label="Sel (%)" 
+                label={txt.salt} 
                 value={salt} 
                 onChange={setSalt} 
                 min={0} 
@@ -147,7 +160,7 @@ export default function App() {
                 unit="%"
               />
               <InputField 
-                label="Huile (%)" 
+                label={txt.oil} 
                 value={oil} 
                 onChange={setOil} 
                 min={0} 
@@ -160,7 +173,7 @@ export default function App() {
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                   <Calculator className="w-4 h-4 text-[#FF6321]" />
-                  Calcul auto de la levure fraîche
+                  {txt.autoYeast}
                 </label>
                 <button 
                   onClick={() => setAutoYeast(!autoYeast)}
@@ -180,15 +193,15 @@ export default function App() {
                     className="space-y-4 overflow-hidden"
                   >
                     <div className="grid grid-cols-2 gap-4">
-                      <InputField label="T. Ambiante (h)" value={rtTime} onChange={setRtTime} min={0} step={0.5} icon={<Clock className="w-4 h-4" />} />
-                      <InputField label="Température (°C)" value={rtTemp} onChange={setRtTemp} min={0} step={0.5} icon={<Thermometer className="w-4 h-4" />} />
+                      <InputField label={txt.rtTime} value={rtTime} onChange={setRtTime} min={0} step={0.5} icon={<Clock className="w-4 h-4" />} />
+                      <InputField label={txt.rtTemp} value={rtTemp} onChange={setRtTemp} min={0} step={0.5} icon={<Thermometer className="w-4 h-4" />} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <InputField label="T. Frigo (h)" value={ctTime} onChange={setCtTime} min={0} step={0.5} icon={<Snowflake className="w-4 h-4" />} />
-                      <InputField label="Température (°C)" value={ctTemp} onChange={setCtTemp} min={0} step={0.5} icon={<Thermometer className="w-4 h-4" />} />
+                      <InputField label={txt.ctTime} value={ctTime} onChange={setCtTime} min={0} step={0.5} icon={<Snowflake className="w-4 h-4" />} />
+                      <InputField label={txt.ctTemp} value={ctTemp} onChange={setCtTemp} min={0} step={0.5} icon={<Thermometer className="w-4 h-4" />} />
                     </div>
                     <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 flex justify-between items-center mt-2">
-                      <span className="text-sm text-orange-800 font-medium">Levure fraîche calculée :</span>
+                      <span className="text-sm text-orange-800 font-medium">{txt.calcYeast}</span>
                       <span className="text-xl font-bold text-[#FF6321]">{calculatedYeast.toFixed(3)}%</span>
                     </div>
                   </motion.div>
@@ -201,7 +214,7 @@ export default function App() {
                     className="overflow-hidden"
                   >
                     <InputField 
-                      label="Levure fraîche (%)" 
+                      label={txt.manualYeast} 
                       value={yeast} 
                       onChange={setYeast} 
                       min={0} 
@@ -225,24 +238,24 @@ export default function App() {
               <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-8 opacity-50">
                   <Info className="w-4 h-4" />
-                  <h2 className="text-xs font-semibold uppercase tracking-widest">Résultats (Ingrédients)</h2>
+                  <h2 className="text-xs font-semibold uppercase tracking-widest">{txt.resultsTitle}</h2>
                 </div>
 
                 <div className="space-y-6">
-                  <ResultRow label="Farine" value={results.flourG} unit="g" />
-                  <ResultRow label="Eau" value={results.waterG} unit="g" />
-                  <ResultRow label="Sel" value={results.saltG} unit="g" />
-                  <ResultRow label="Levure fraîche" value={results.yeastG} unit="g" />
-                  {results.oilG > 0 && <ResultRow label="Huile" value={results.oilG} unit="g" />}
+                  <ResultRow label={txt.flour} value={results.flourG} unit="g" />
+                  <ResultRow label={txt.water} value={results.waterG} unit="g" />
+                  <ResultRow label={txt.salt} value={results.saltG} unit="g" />
+                  <ResultRow label={txt.yeast} value={results.yeastG} unit="g" />
+                  {results.oilG > 0 && <ResultRow label={txt.oil} value={results.oilG} unit="g" />}
                 </div>
 
                 <div className="mt-10 pt-6 border-t border-white/10 flex justify-between items-end">
                   <div>
-                    <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Poids Total</p>
+                    <p className="text-xs text-white/40 uppercase tracking-wider mb-1">{txt.totalWeight}</p>
                     <p className="text-3xl font-light tracking-tight">{results.totalWeight.toLocaleString()} <span className="text-lg opacity-50">g</span></p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Ratio Total</p>
+                    <p className="text-xs text-white/40 uppercase tracking-wider mb-1">{txt.totalRatio}</p>
                     <p className="text-xl font-mono opacity-80">{results.sumPercentages.toFixed(3)}</p>
                   </div>
                 </div>
@@ -254,10 +267,10 @@ export default function App() {
           </motion.section>
         </main>
 
-        <WaterTemperatureCalculator />
+        <WaterTemperatureCalculator lang={lang} />
 
         <footer className="mt-12 text-center text-gray-400 text-xs py-8 border-t border-gray-200">
-          <p>© 2026 Calculateur de Pâte à Pizza Professionnel</p>
+          <p>{txt.footer}</p>
         </footer>
       </div>
     </div>

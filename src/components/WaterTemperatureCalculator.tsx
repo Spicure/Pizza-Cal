@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Thermometer, Link as LinkIcon, Unlink, AlertTriangle, Droplets, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { t, Language } from '../translations';
 
 // ============================================================================
 // LOGIQUE MATHÉMATIQUE (Séparée de l'UI)
@@ -26,21 +27,23 @@ export function calculateWaterTemperature(
 }
 
 // Préréglages pour le facteur de friction selon le type de pétrissage
-const FRICTION_PRESETS = {
-  manual: { label: 'Pétrissage manuel', value: 2 },
-  oblique: { label: 'Axe oblique', value: 6 },
-  spiral: { label: 'Spirale', value: 9 },
-  stand_mixer: { label: 'Robot ménager (ex: KitchenAid)', value: 14 },
-  custom: { label: 'Personnalisé...', value: 0 },
-};
+const getFrictionPresets = (lang: Language) => ({
+  manual: { label: t[lang].frictionManual, value: 2 },
+  oblique: { label: t[lang].frictionOblique, value: 6 },
+  spiral: { label: t[lang].frictionSpiral, value: 9 },
+  stand_mixer: { label: t[lang].frictionStand, value: 14 },
+  custom: { label: t[lang].frictionCustom, value: 0 },
+});
 
-type FrictionKey = keyof typeof FRICTION_PRESETS;
+type FrictionKey = 'manual' | 'oblique' | 'spiral' | 'stand_mixer' | 'custom';
 
 // ============================================================================
 // COMPOSANT UI
 // ============================================================================
 
-export default function WaterTemperatureCalculator() {
+export default function WaterTemperatureCalculator({ lang }: { lang: Language }) {
+  const txt = t[lang];
+  const FRICTION_PRESETS = getFrictionPresets(lang);
   // --- ÉTATS ---
   const [targetTemp, setTargetTemp] = useState<number>(24);
   const [roomTemp, setRoomTemp] = useState<number>(21);
@@ -94,27 +97,27 @@ export default function WaterTemperatureCalculator() {
     <section className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mt-8">
       <div className="flex items-center gap-2 mb-6 pb-2 border-b border-gray-50">
         <Thermometer className="w-5 h-5 text-blue-500" />
-        <h2 className="text-lg font-bold text-gray-800">Calculateur de Température d'Eau</h2>
+        <h2 className="text-lg font-bold text-gray-800">{txt.waterTitle}</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Colonne de gauche : Inputs */}
         <div className="space-y-5">
           <TempInput 
-            label="Température cible de la pâte" 
+            label={txt.targetTemp} 
             value={targetTemp} 
             onChange={(v) => setTargetTemp(clamp(v))} 
           />
           
           <TempInput 
-            label="Température ambiante de la pièce" 
+            label={txt.roomTemp} 
             value={roomTemp} 
             onChange={handleRoomTempChange} 
           />
 
           <div className="relative">
             <TempInput 
-              label="Température de la farine" 
+              label={txt.flourTemp} 
               value={flourTemp} 
               onChange={handleFlourTempChange} 
             />
@@ -123,16 +126,16 @@ export default function WaterTemperatureCalculator() {
               className={`absolute right-0 top-0 text-xs flex items-center gap-1 px-2 py-1 rounded-md transition-colors ${
                 isLinked ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
-              title={isLinked ? "Lié à la température ambiante" : "Lier à la température ambiante"}
+              title={isLinked ? txt.linked : txt.link}
             >
               {isLinked ? <LinkIcon className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
-              {isLinked ? 'Lié à l\'ambiante' : 'Lier à l\'ambiante'}
+              {isLinked ? txt.linked : txt.link}
             </button>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 block">
-              Échauffement du pétrin (Friction)
+              {txt.frictionLabel}
             </label>
             <div className="relative">
               <select
@@ -162,7 +165,7 @@ export default function WaterTemperatureCalculator() {
                   className="pt-2 overflow-hidden"
                 >
                   <TempInput 
-                    label="Valeur de friction personnalisée" 
+                    label={txt.customFriction} 
                     value={customFriction} 
                     onChange={(v) => setCustomFriction(clamp(v))} 
                   />
@@ -178,7 +181,7 @@ export default function WaterTemperatureCalculator() {
             <Droplets className="w-32 h-32 text-blue-500/10 absolute -right-6 -bottom-6" />
             
             <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2 relative z-10">
-              Température de l'eau requise
+              {txt.waterTempReq}
             </p>
             
             <div className="flex items-start justify-center gap-1 relative z-10">
@@ -205,9 +208,7 @@ export default function WaterTemperatureCalculator() {
                   className="mt-6 bg-white/80 backdrop-blur-sm p-4 rounded-2xl text-left flex gap-3 items-start shadow-sm border border-blue-100/50"
                 >
                   <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-sm text-blue-900 leading-relaxed">
-                    L'eau doit être très froide. Pensez à utiliser de la <strong>glace pilée</strong> ou à refroidir votre farine au réfrigérateur en amont.
-                  </p>
+                  <p className="text-sm text-blue-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: txt.warning.replace('glace pilée', '<strong>glace pilée</strong>').replace('crushed ice', '<strong>crushed ice</strong>') }} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -216,8 +217,8 @@ export default function WaterTemperatureCalculator() {
           <div className="mt-4 flex gap-2 items-start text-xs text-gray-500 bg-gray-50 p-3 rounded-xl">
             <Info className="w-4 h-4 shrink-0 text-gray-400" />
             <p>
-              Calcul basé sur la règle des températures : <br/>
-              <code className="bg-gray-200 px-1.5 py-0.5 rounded text-gray-700 font-mono mt-1.5 inline-block">Eau = (Cible × 3) - (Ambiante + Farine + Friction)</code>
+              {txt.infoText} <br/>
+              <code className="bg-gray-200 px-1.5 py-0.5 rounded text-gray-700 font-mono mt-1.5 inline-block">{txt.formula}</code>
             </p>
           </div>
         </div>

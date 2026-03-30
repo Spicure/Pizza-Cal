@@ -7,6 +7,14 @@ import { t, Language } from '../translations';
 // LOGIQUE MATHÉMATIQUE (Séparée de l'UI)
 // ============================================================================
 
+export function cToF(celsius: number): number {
+  return (celsius * 9/5) + 32;
+}
+
+export function fToC(fahrenheit: number): number {
+  return (fahrenheit - 32) * 5/9;
+}
+
 /**
  * Calcule la température de l'eau requise pour atteindre une température de pâte cible.
  * Basé sur la règle des températures (Température de base).
@@ -49,6 +57,7 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
   const [roomTemp, setRoomTemp] = useState<number>(21);
   const [flourTemp, setFlourTemp] = useState<number>(21);
   const [isLinked, setIsLinked] = useState<boolean>(true);
+  const [unit, setUnit] = useState<'C' | 'F'>('C');
   
   const [frictionKey, setFrictionKey] = useState<FrictionKey>('manual');
   const [customFriction, setCustomFriction] = useState<number>(0);
@@ -62,7 +71,7 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
   };
 
   const handleRoomTempChange = (val: number) => {
-    const safeVal = clamp(val);
+    const safeVal = Number.isNaN(val) ? 0 : val;
     setRoomTemp(safeVal);
     // Si lié, on met à jour la farine en même temps
     if (isLinked) {
@@ -71,7 +80,7 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
   };
 
   const handleFlourTempChange = (val: number) => {
-    setFlourTemp(clamp(val));
+    setFlourTemp(Number.isNaN(val) ? 0 : val);
     // Si l'utilisateur modifie manuellement la farine, on casse le lien
     setIsLinked(false);
   };
@@ -85,19 +94,61 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
     }
   };
 
+  const toggleUnit = () => {
+    if (unit === 'C') {
+      setTargetTemp(cToF(targetTemp));
+      setRoomTemp(cToF(roomTemp));
+      setFlourTemp(cToF(flourTemp));
+      setCustomFriction(customFriction * 9/5); // Friction is a delta, not absolute temp
+      setUnit('F');
+    } else {
+      setTargetTemp(fToC(targetTemp));
+      setRoomTemp(fToC(roomTemp));
+      setFlourTemp(fToC(flourTemp));
+      setCustomFriction(customFriction * 5/9);
+      setUnit('C');
+    }
+  };
+
   // --- CALCULS EN TEMPS RÉEL ---
-  const currentFriction = frictionKey === 'custom' ? customFriction : FRICTION_PRESETS[frictionKey].value;
-  const waterTemp = calculateWaterTemperature(targetTemp, roomTemp, flourTemp, currentFriction);
+  // Convertir en Celsius pour le calcul si on est en Fahrenheit
+  const calcTarget = unit === 'C' ? targetTemp : fToC(targetTemp);
+  const calcRoom = unit === 'C' ? roomTemp : fToC(roomTemp);
+  const calcFlour = unit === 'C' ? flourTemp : fToC(flourTemp);
   
-  // Règle métier : Avertissement si l'eau doit être très froide
-  const showColdWarning = waterTemp < 4;
+  // La friction est un delta (différence de température)
+  const baseFriction = frictionKey === 'custom' 
+    ? (unit === 'C' ? customFriction : customFriction * 5/9) 
+    : FRICTION_PRESETS[frictionKey].value;
+
+  const waterTempC = calculateWaterTemperature(calcTarget, calcRoom, calcFlour, baseFriction);
+  const displayWaterTemp = unit === 'C' ? waterTempC : cToF(waterTempC);
+  
+  // Règle métier : Avertissement si l'eau doit être très froide (en dessous de 4°C)
+  const showColdWarning = waterTempC < 4;
 
   // --- RENDU ---
   return (
     <section className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mt-8">
-      <div className="flex items-center gap-2 mb-6 pb-2 border-b border-gray-50">
-        <Thermometer className="w-5 h-5 text-blue-500" />
-        <h2 className="text-lg font-bold text-gray-800">{txt.waterTitle}</h2>
+      <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-50">
+        <div className="flex items-center gap-2">
+          <Thermometer className="w-5 h-5 text-blue-500" />
+          <h2 className="text-lg font-bold text-gray-800">{txt.waterTitle}</h2>
+        </div>
+        <div className="flex bg-gray-100 p-1 rounded-lg">
+          <button
+            onClick={() => unit !== 'C' && toggleUnit()}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${unit === 'C' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            °C
+          </button>
+          <button
+            onClick={() => unit !== 'F' && toggleUnit()}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${unit === 'F' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            °F
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -106,13 +157,15 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
           <TempInput 
             label={txt.targetTemp} 
             value={targetTemp} 
-            onChange={(v) => setTargetTemp(clamp(v))} 
+            onChange={(v) => setTargetTemp(v)} 
+            unit={unit}
           />
           
           <TempInput 
             label={txt.roomTemp} 
             value={roomTemp} 
             onChange={handleRoomTempChange} 
+            unit={unit}
           />
 
           <div className="relative">
@@ -120,6 +173,7 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
               label={txt.flourTemp} 
               value={flourTemp} 
               onChange={handleFlourTempChange} 
+              unit={unit}
             />
             <button
               onClick={toggleLink}
@@ -143,11 +197,14 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
                 onChange={(e) => setFrictionKey(e.target.value as FrictionKey)}
                 className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none appearance-none cursor-pointer"
               >
-                {Object.entries(FRICTION_PRESETS).map(([key, { label, value }]) => (
-                  <option key={key} value={key}>
-                    {label} {key !== 'custom' ? `(+${value}°C)` : ''}
-                  </option>
-                ))}
+                {Object.entries(FRICTION_PRESETS).map(([key, { label, value }]) => {
+                  const displayValue = unit === 'C' ? value : (value * 9/5);
+                  return (
+                    <option key={key} value={key}>
+                      {label} {key !== 'custom' ? `(+${displayValue.toFixed(1)}°${unit})` : ''}
+                    </option>
+                  );
+                })}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -167,7 +224,8 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
                   <TempInput 
                     label={txt.customFriction} 
                     value={customFriction} 
-                    onChange={(v) => setCustomFriction(clamp(v))} 
+                    onChange={(v) => setCustomFriction(v)} 
+                    unit={unit}
                   />
                 </motion.div>
               )}
@@ -187,15 +245,15 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
             <div className="flex items-start justify-center gap-1 relative z-10">
               <AnimatePresence mode="popLayout">
                 <motion.span
-                  key={waterTemp}
+                  key={displayWaterTemp}
                   initial={{ opacity: 0, scale: 0.8, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   className="text-6xl font-bold text-blue-900 tabular-nums tracking-tighter"
                 >
-                  {waterTemp.toFixed(1)}
+                  {displayWaterTemp.toFixed(1)}
                 </motion.span>
               </AnimatePresence>
-              <span className="text-2xl font-medium text-blue-700 mt-2">°C</span>
+              <span className="text-2xl font-medium text-blue-700 mt-2">°{unit}</span>
             </div>
 
             {/* Message d'avertissement si l'eau doit être très froide */}
@@ -234,11 +292,13 @@ export default function WaterTemperatureCalculator({ lang }: { lang: Language })
 function TempInput({ 
   label, 
   value, 
-  onChange 
+  onChange,
+  unit
 }: { 
   label: string; 
   value: number; 
   onChange: (val: number) => void; 
+  unit: 'C' | 'F';
 }) {
   return (
     <div>
@@ -248,15 +308,13 @@ function TempInput({
       <div className="relative">
         <input
           type="number"
-          value={Number.isNaN(value) ? '' : value}
+          value={Number.isNaN(value) ? '' : Number(value.toFixed(1))}
           onChange={(e) => onChange(parseFloat(e.target.value))}
-          min={0}
-          max={50}
           step={0.5}
           className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none pr-10"
         />
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-          °C
+          °{unit}
         </span>
       </div>
     </div>

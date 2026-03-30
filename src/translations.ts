@@ -50,6 +50,8 @@ export const t = {
     warning: "L'eau doit être très froide. Pensez à utiliser de la glace pilée ou à refroidir votre farine au réfrigérateur en amont.",
     infoText: "Calcul basé sur la règle des températures :",
     formula: "Eau = (Cible × 3) - (Ambiante + Farine + Friction)",
+    unitC: "Celsius (°C)",
+    unitF: "Fahrenheit (°F)",
   },
   en: {
     // App
@@ -100,5 +102,7 @@ export const t = {
     warning: "Water needs to be very cold. Consider using crushed ice or chilling your flour in the fridge beforehand.",
     infoText: "Calculation based on the rule of temperatures:",
     formula: "Water = (Target × 3) - (Room + Flour + Friction)",
+    unitC: "Celsius (°C)",
+    unitF: "Fahrenheit (°F)",
   }
 };

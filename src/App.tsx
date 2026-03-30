@@ -251,27 +251,6 @@ export default function App() {
               {/* Decorative background element */}
               <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#FF6321] opacity-10 rounded-full blur-3xl" />
             </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                <Info className="w-4 h-4 text-blue-500" />
-                Conseils de préparation
-              </h3>
-              <ul className="text-sm text-gray-600 space-y-3">
-                <li className="flex gap-2">
-                  <span className="text-[#FF6321] font-bold">•</span>
-                  Utilisez de la farine de force (W270-W320) pour une meilleure hydratation.
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[#FF6321] font-bold">•</span>
-                  L'eau doit être à température ambiante ou fraîche selon la saison.
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[#FF6321] font-bold">•</span>
-                  Dissolvez la levure dans un peu d'eau avant de l'ajouter.
-                </li>
-              </ul>
-            </div>
           </motion.section>
         </main>
 

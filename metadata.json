@@ -1,5 +1,5 @@
 {
-  "name": "Calculateur de Pâte à Pizza",
+  "name": "Pizza Calculator",
   "description": "Un outil précis pour calculer les ingrédients de votre pâte à pizza en utilisant les pourcentages du boulanger.",
   "requestFramePermissions": []
 }

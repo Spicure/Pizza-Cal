@@ -7,6 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { Pizza, Scale, Droplets, Utensils, Zap, Info, RefreshCw, Clock, Thermometer, Snowflake, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import WaterTemperatureCalculator, { cToF, fToC } from './components/WaterTemperatureCalculator';
+import AdBanner from './components/AdBanner';
 import { t, Language } from './translations';
 
 export default function App() {
@@ -334,7 +335,13 @@ export default function App() {
           </motion.section>
         </main>
 
+        {/* Espace publicitaire (Google AdSense) */}
+        <AdBanner dataAdSlot="REMPLACEZ_PAR_VOTRE_ID_DE_BLOC_1" />
+
         <WaterTemperatureCalculator lang={lang} />
+
+        {/* Espace publicitaire (Google AdSense) */}
+        <AdBanner dataAdSlot="REMPLACEZ_PAR_VOTRE_ID_DE_BLOC_2" />
 
         <footer className="mt-12 text-center text-gray-400 text-xs py-8 border-t border-gray-200">
           <p>{txt.footer}</p>
